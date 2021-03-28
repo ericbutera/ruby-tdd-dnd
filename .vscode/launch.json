@@ -16,5 +16,7 @@
                 "${workspaceRoot}"
             ]
         }
-    ]
+    ],
+    "console": "integratedTerminal",
+    "internalConsoleOptions": "neverOpen",
 }
