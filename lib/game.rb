@@ -32,6 +32,10 @@ class Character
         raise ArgumentError, "Invalid alignment <#{alignment}>" unless ALIGNMENTS.include? alignment
         @alignment = alignment 
     end
+
+    def is_alive?
+        return @hit_points > 0
+    end
 end
 
 ##

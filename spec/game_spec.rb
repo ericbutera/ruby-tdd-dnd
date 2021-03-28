@@ -1,12 +1,12 @@
 require 'game'
 
 RSpec.describe Character do
-    it "character has a name" do
+    it "has a name" do
         c = Character.new "eric" 
         expect(c.name).to eq 'eric'
     end
 
-    it "default alignment is neutral" do
+    it "has default alignment is neutral" do
         c = Character.new 'luna'
         expect(c.alignment).to eq :neutral
     end
@@ -17,7 +17,7 @@ RSpec.describe Character do
         expect(c.alignment).to eq :good
     end
 
-    it "alignments are good, evil, neutral" do
+    it "has alignments: good, evil, neutral" do
         c = Character.new "luna"
         expect { 
             c.alignment = "invalid-alignment-that-can-never-be" 
@@ -34,48 +34,56 @@ RSpec.describe Character do
         expect(c.hit_points).to eq 5
     end    
 
-    it "damage subtracts hit points" do
+    it "takes 1 damage leading to 4 hit points" do
         luna = Character.new 'luna'
         luna.damaged 1
         expect(luna.hit_points).to eq 4
     end
+
+    it "is alive" do
+        luna = Character.new 'luna'
+        expect(luna.is_alive?).to be true
+    end
+
+    it "has expired" do
+        cinnamon = Character.new 'Cinnamon'
+        cinnamon.damaged(cinnamon.hit_points)
+        expect(cinnamon.is_alive?).to be false
+    end
 end
 
 RSpec.describe Combat do
-    it "meet or beat opponents armor is a hit" do
+    it "hits when roll is greater than armor" do
         combat = Combat.new ac=10, roll=11
         hit = combat.hit?
         expect(hit).to be true
     end
 
-    it "roll less than armor class misses" do
+    it "misses when roll is less than armor" do
         combat = Combat.new ac=10, roll=9
         hit = combat.hit?
         expect(hit).to be false
     end
 
-    it "roll of 20 always hits" do
+    it "always hits on critical roll" do
         combat = Combat.new ac=30, roll=20
         hit = combat.hit?
         expect(hit).to be true
     end
-end
 
-RSpec.describe "Character can be damaged" do
-    # `setup` char & combat ?
-    it "character takes 1 damage on hit" do
+    it "hits player for 1 damage" do
         combat = Combat.new ac=10, roll=11
         damage = combat.hit
         expect(damage).to eq 1
     end
 
-    it "damage doubled by critical hit when roll is 20" do
+    it "hits player for double damage on critical roll" do
         combat = Combat.new ac=20, roll=20
         damage = combat.hit
         expect(damage).to eq 2
     end
 
-    it "no damage for rolls lower than defender armor class" do
+    it "causes no damage if armor is stronger than roll" do
         combat = Combat.new ac=2, roll=1
         damage = combat.hit
         expect(damage).to eq 0
