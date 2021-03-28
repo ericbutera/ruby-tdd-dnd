@@ -2,60 +2,84 @@ require 'game'
 
 RSpec.describe Character do
     it "character has a name" do
-        c = Character.new("eric")
+        c = Character.new "eric" 
         expect(c.name).to eq 'eric'
     end
 
     it "default alignment is neutral" do
-        c = Character.new("luna")
+        c = Character.new 'luna'
         expect(c.alignment).to eq :neutral
     end
 
     it "can set alignment to good" do
-        c = Character.new("luna")
+        c = Character.new 'luna'
         c.alignment = :good
         expect(c.alignment).to eq :good
     end
 
     it "alignments are good, evil, neutral" do
-        c = Character.new("luna")
+        c = Character.new "luna"
         expect { 
             c.alignment = "invalid-alignment-that-can-never-be" 
         }.to raise_error(ArgumentError)
     end
 
     it "has 10 armor class" do
-        c = Character.new('luna')
+        c = Character.new 'luna'
         expect(c.armor_class).to eq 10
     end
 
     it "has 5 hit points" do
-        c = Character.new('luna')
+        c = Character.new 'luna'
         expect(c.hit_points).to eq 5
+    end    
+
+    it "damage subtracts hit points" do
+        luna = Character.new 'luna'
+        luna.damaged 1
+        expect(luna.hit_points).to eq 4
     end
 end
 
 RSpec.describe Combat do
     it "meet or beat opponents armor is a hit" do
-        combat = Combat.new
-        hit = combat.hit?(armor_class=10, roll=11)
+        combat = Combat.new ac=10, roll=11
+        hit = combat.hit?
         expect(hit).to be true
     end
 
-    # todo fence post issues
-
     it "roll less than armor class misses" do
-        combat = Combat.new
-        hit = combat.hit?(armor_class=10, roll=9)
+        combat = Combat.new ac=10, roll=9
+        hit = combat.hit?
         expect(hit).to be false
     end
 
     it "roll of 20 always hits" do
-        combat = Combat.new
-        hit = combat.hit?(ac=30, roll=20)
+        combat = Combat.new ac=30, roll=20
+        hit = combat.hit?
         expect(hit).to be true
     end
 end
 
+RSpec.describe "Character can be damaged" do
+    # `setup` char & combat ?
+    it "character takes 1 damage on hit" do
+        combat = Combat.new ac=10, roll=11
+        damage = combat.hit
+        expect(damage).to eq 1
+    end
+
+    it "damage doubled by critical hit when roll is 20" do
+        combat = Combat.new ac=20, roll=20
+        damage = combat.hit
+        expect(damage).to eq 2
+    end
+
+    it "no damage for rolls lower than defender armor class" do
+        combat = Combat.new ac=2, roll=1
+        damage = combat.hit
+        expect(damage).to eq 0
+    end
+end
 
 # https://relishapp.com/rspec/rspec-expectations/v/3-10/docs/built-in-matchers/be-matchers
