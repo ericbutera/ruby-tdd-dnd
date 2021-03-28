@@ -3,6 +3,8 @@
 class Character
     attr_reader :name, :armor_class, :hit_points
 
+    ALIGNMENTS = [:good, :neutral, :evil]
+    DEFAULT_ALIGNMENT = :neutral
     DEFAULT_ARMOR_CLASS = 10
     DEFAULT_HIT_POINTS = 5
 
@@ -11,7 +13,7 @@ class Character
     # Params:
     # +name+ Hero name
     # +alignment+ An alignment- defaults to :neutral
-    def initialize(name, alignment=:neutral)
+    def initialize(name, alignment=DEFAULT_ALIGNMENT)
         @name = name
         @alignment = alignment
         @armor_class = DEFAULT_ARMOR_CLASS
@@ -27,9 +29,6 @@ class Character
         @alignment = alignment 
     end
 end
-
-ALIGNMENTS = [:good, :neutral, :evil]
-
 
 ##
 # Define rules of combat
@@ -49,3 +48,9 @@ class Combat
         is_always_hit || is_roll_above_ac
     end
 end
+
+#class Die
+#    def roll
+#        rand(1..20)
+#    end
+#end

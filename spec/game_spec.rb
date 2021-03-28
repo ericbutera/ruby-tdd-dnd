@@ -52,20 +52,10 @@ RSpec.describe Combat do
 
     it "roll of 20 always hits" do
         combat = Combat.new
-        hit = combat.hit?(30, 20)
+        hit = combat.hit?(ac=30, roll=20)
         expect(hit).to be true
     end
 end
 
 
 # https://relishapp.com/rspec/rspec-expectations/v/3-10/docs/built-in-matchers/be-matchers
-
-# roll a 20 sided die
-# roll must meet or beat opponents armor class to hit
-# a natural roll of 20 always hits
-
-#class Die
-#    def roll
-#        rand(1..20)
-#    end
-#end
