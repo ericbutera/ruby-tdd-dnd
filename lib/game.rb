@@ -1,12 +1,14 @@
 ##
 # The hero in a story
 class Character
-    attr_reader :name, :armor_class, :hit_points
+    attr_reader :name, :armor_class, :hit_points, :abilities
+    attr_writer :armor_class
 
     ALIGNMENTS = [:good, :neutral, :evil]
     DEFAULT_ALIGNMENT = :neutral
     DEFAULT_ARMOR_CLASS = 10
     DEFAULT_HIT_POINTS = 5
+    DEFAULT_ABILITY = 10
 
     ##
     # Create a new hero
@@ -16,8 +18,18 @@ class Character
     def initialize(name, alignment=DEFAULT_ALIGNMENT)
         @name = name
         @alignment = alignment
+
         @armor_class = DEFAULT_ARMOR_CLASS
         @hit_points = DEFAULT_HIT_POINTS
+
+        @abilities = {
+            :strength => DEFAULT_ABILITY,
+            :dexterity => DEFAULT_ABILITY,
+            :constitution => DEFAULT_ABILITY,
+            :wisdom => DEFAULT_ABILITY,
+            :intelligence => DEFAULT_ABILITY,
+            :charisma => DEFAULT_ABILITY
+        }
     end
 
     def damaged(hit_points)
@@ -45,8 +57,10 @@ class Combat
     # Magic roll 20 always hits
     CRITICAL_HIT = 20
 
-    def initialize(defender_armor_class, roll)
-        @defender_armor_class = defender_armor_class
+    def initialize(attacker, defender, roll) #initialize(defender_armor_class, roll)
+        @attacker = attacker
+        @defender = defender
+        #@defender_armor_class = defender_armor_class
         @roll = roll
     end
 
@@ -69,7 +83,7 @@ class Combat
     end
 
     def is_hit_successful
-        @roll >= @defender_armor_class
+        @roll >= @defender.armor_class #@defender_armor_class
     end
 end
 
