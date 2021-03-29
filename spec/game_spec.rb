@@ -74,6 +74,16 @@ RSpec.describe Character do
             luna.set_ability :strength, 21
         }.to raise_error(ArgumentError)
     end
+
+    it "has 0 experience at creation" do
+        luna = Character.new 'luna'
+        expect(luna.experience).to eq 0
+    end
+
+    it "is level 1 at creation" do
+        luna = Character.new 'luna'
+        expect(luna.level).to eq 1
+    end
 end
 
 RSpec.describe Combat do
@@ -84,8 +94,7 @@ RSpec.describe Combat do
 
     it "hits when roll is greater than armor" do
         @defender.armor_class = 10
-        roll = 11
-        combat = Combat.new @attacker, @defender, roll 
+        combat = Combat.new @attacker, @defender, roll=11
         hit = combat.hit?
         expect(hit).to be true
     end
@@ -128,6 +137,21 @@ RSpec.describe Combat do
         combat = Combat.new @attacker, @defender, roll
         damage = combat.hit
         expect(damage).to eq 0
+    end
+
+    it "causes damage if armor is equal to roll" do
+        @defender.armor_class = 10
+        roll = 10
+        combat = Combat.new @attacker, @defender, roll
+        damage = combat.hit
+        expect(damage).to eq 1
+    end
+
+    it "gives attacker 10xp upon successful hit" do
+        combat = Combat.new @attacker, @defender, roll=20
+        # im not so sure combat.hit makes sense anymore.. 
+        combat.hit
+        expect(@attacker.experience).to eq 10
     end
 end
 
@@ -187,6 +211,19 @@ RSpec.describe "Modifier" do
         combat = Combat.new @attacker, @defender, roll=1
         damage = combat.hit
         expect(damage).to eq 2 # 1 base damage, +1 damage because strength
+    end
+
+    it "dexterity 12 increases armor by 1" do
+        @defender.set_ability :dexterity, 12
+        combat = Combat.new @attacker, @defender, roll=10
+        damage = combat.hit
+        expect(damage).to eq 0
+    end
+
+    it "constitution ensures at least 1 hit point" do
+        @defender.set_ability :constitution, 12
+        @defender.damaged(10000000)
+        expect(@defender.hit_points).to eq 1
     end
 end
 
