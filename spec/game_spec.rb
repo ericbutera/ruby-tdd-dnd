@@ -1,88 +1,101 @@
 require 'game'
 
 RSpec.describe Character do
+    before :each do
+        @hero = Character.new 'Luna'
+    end
+
     it "has a name" do
-        c = Character.new "eric" 
-        expect(c.name).to eq 'eric'
+        expect(@hero.name).to eq 'Luna'
+    end
+
+    it "can use different names" do
+        cinnamon = Character.new 'Cinnamon'
+        expect(cinnamon.name).to eq 'Cinnamon'
     end
 
     it "has default alignment is neutral" do
-        c = Character.new 'luna'
-        expect(c.alignment).to eq :neutral
+        expect(@hero.alignment).to eq :neutral
     end
 
     it "can set alignment to good" do
-        c = Character.new 'luna'
-        c.alignment = :good
-        expect(c.alignment).to eq :good
+        @hero.alignment = :good
+        expect(@hero.alignment).to eq :good
     end
 
     it "has alignments: good, evil, neutral" do
-        c = Character.new "luna"
         expect { 
-            c.alignment = "invalid-alignment-that-can-never-be" 
+            @hero.alignment = "invalid-alignment-that-can-never-be" 
         }.to raise_error(ArgumentError)
     end
 
     it "has 10 armor class" do
-        c = Character.new 'luna'
-        expect(c.armor_class).to eq 10
+        expect(@hero.armor_class).to eq 10
     end
 
     it "has 5 hit points" do
-        c = Character.new 'luna'
-        expect(c.hit_points).to eq 5
+        expect(@hero.hit_points).to eq 5
     end    
 
     it "takes 1 damage reducing hit points to 4" do
-        luna = Character.new 'luna'
-        luna.damaged 1
-        expect(luna.hit_points).to eq 4
+        @hero.damaged 1
+        expect(@hero.hit_points).to eq 4
     end
 
     it "is alive" do
-        luna = Character.new 'luna'
-        expect(luna.is_alive?).to be true
+        expect(@hero.is_alive?).to be true
     end
 
     it "has expired" do
-        cinnamon = Character.new 'Cinnamon'
-        cinnamon.damaged(cinnamon.hit_points)
-        expect(cinnamon.is_alive?).to be false
+        @hero.damaged(@hero.hit_points)
+        expect(@hero.is_alive?).to be false
     end
 
     it "has abilities that default to 10" do
-        luna = Character.new 'luna'
-        expect(luna.ability :strength).to eq 10
-        expect(luna.ability :dexterity).to eq 10
-        expect(luna.ability :constitution).to eq 10
-        expect(luna.ability :wisdom).to eq 10
-        expect(luna.ability :intelligence).to eq 10
-        expect(luna.ability :charisma).to eq 10
+        expect(@hero.ability :strength).to eq 10
+        expect(@hero.ability :dexterity).to eq 10
+        expect(@hero.ability :constitution).to eq 10
+        expect(@hero.ability :wisdom).to eq 10
+        expect(@hero.ability :intelligence).to eq 10
+        expect(@hero.ability :charisma).to eq 10
     end
 
     it "has abilities that must be above 1" do
-        luna = Character.new 'luna'
         expect { 
-            luna.set_ability :strength, 0
+            @hero.set_ability :strength, 0
         }.to raise_error(ArgumentError)
     end
 
     it "has abilities that must be below 21" do
-        luna = Character.new 'luna'
         expect { 
-            luna.set_ability :strength, 21
+            @hero.set_ability :strength, 21
         }.to raise_error(ArgumentError)
     end
 
     it "has 0 experience at creation" do
-        luna = Character.new 'luna'
-        expect(luna.experience).to eq 0
+        expect(@hero.experience).to eq 0
     end
 
     it "is level 1 at creation" do
-        luna = Character.new 'luna'
-        expect(luna.level).to eq 1
+        expect(@hero.level).to eq 1
+    end
+
+    it "is level 2 at 2000 xp" do
+        @hero.experience = 1000
+        expect(@hero.level).to eq 2
+    end
+
+    it "extra xp counts towards next level" do
+        @hero.experience = 1010
+        expect(@hero.level).to eq 2
+        expect(@hero.experience).to eq 10
+    end
+
+    it "is level 3 at 3000 xp" do
+        @hero.experience = 1000
+        @hero.experience = 1000
+        @hero.experience = 1000
+        expect(@hero.level).to be 3
     end
 end
 

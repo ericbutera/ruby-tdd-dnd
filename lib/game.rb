@@ -59,7 +59,24 @@ class Character
     end
 
     def experience=(xp)
-        @experience = @experience + xp
+        attempt = @experience + xp
+
+        # level up! take any xp over level threshold and apply towards next level..
+        next_level_xp = level * 1000
+        if attempt >= next_level_xp
+            @level += 1
+            attempt = attempt - next_level_xp
+        end
+
+        @experience = attempt
+    end
+
+    def hit_points
+        # constitution = Modifier.score @abilities[:constitution]
+        # hit_points
+        # += (5 * level)
+        # += constitution
+        @hit_points 
     end
 
     def is_alive?
@@ -88,9 +105,30 @@ class Combat
     def initialize(attacker, defender, roll) 
         @attacker = attacker
         @defender = defender
-        # Base die roll, no modifiers
         @roll = roll
     end
+
+    ##
+    # Can the defender be attacked?
+    def hit?
+        is_hit_critical || is_hit_successful
+    end
+
+    ##
+    # Perform attack, return damage
+    def hit
+        # refactor- i don't like how hit? and hit are mostly the same
+        # methods shouldnt be called multiple times
+        # attacker xp is intermingled with hit which might be better in 'Game'
+
+        if hit? # TODO fix, this calls so many methods
+            @attacker.experience += 10
+        end
+
+        damage
+    end
+
+    private
 
     ##
     # Calculate strength of attack. On critical hits, strength is doubled
@@ -105,31 +143,9 @@ class Combat
     end
 
     ##
-    # Defender dexterity modifier
-    def dexterity
-        Modifier.score @defender.ability(:dexterity)
-    end
-
-    ##
     # Die roll with modifiers
     def roll
         @roll + strength
-    end
-
-    ##
-    # Can the defender be attacked?
-    def hit?
-        is_hit_critical || is_hit_successful
-    end
-
-    ##
-    # Perform attack, return damage
-    def hit
-        if hit? # TODO fix, this calls so many methods
-            @attacker.experience += 10
-        end
-
-        damage
     end
 
     def is_hit_critical
@@ -137,10 +153,10 @@ class Combat
     end
 
     def is_hit_successful
-        roll >= @defender.armor_class + dexterity
+        dexterity = Modifier.score @defender.ability(:dexterity)
+        roll >= @defender.armor_class + dexterity # maybe this goes in Character?
     end
 
-    private
     def damage
         _strength = strength
         if _strength > 0
