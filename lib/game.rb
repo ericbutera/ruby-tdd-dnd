@@ -1,7 +1,7 @@
 ##
 # The hero in a story
 class Character
-    attr_reader :name, :armor_class, :hit_points, :abilities
+    attr_reader :name, :armor_class, :hit_points
     attr_writer :armor_class
 
     ALIGNMENTS = [:good, :neutral, :evil]
@@ -9,6 +9,8 @@ class Character
     DEFAULT_ARMOR_CLASS = 10
     DEFAULT_HIT_POINTS = 5
     DEFAULT_ABILITY = 10
+    ABILITY_MIN = 1
+    ABILITY_MAX = 20
 
     ##
     # Create a new hero
@@ -22,6 +24,7 @@ class Character
         @armor_class = DEFAULT_ARMOR_CLASS
         @hit_points = DEFAULT_HIT_POINTS
 
+        # todo abilities range from 1 to 20
         @abilities = {
             :strength => DEFAULT_ABILITY,
             :dexterity => DEFAULT_ABILITY,
@@ -46,7 +49,18 @@ class Character
     end
 
     def is_alive?
-        return @hit_points > 0
+        @hit_points > 0
+    end
+
+    def ability(ability)
+        raise ArgumentError, "Invalid ability <#{ability}>" unless @abilities.has_key? ability
+        @abilities[ability]
+    end
+
+    def set_ability(ability, value)
+        # todo research better way to handle get/set
+        raise ArgumentError, "Attribute value must be between 1 and 20. Given <#{value}>" unless value.between?(ABILITY_MIN, ABILITY_MAX)
+        @abilities[ability] = value 
     end
 end
 
@@ -57,11 +71,20 @@ class Combat
     # Magic roll 20 always hits
     CRITICAL_HIT = 20
 
-    def initialize(attacker, defender, roll) #initialize(defender_armor_class, roll)
+    def initialize(attacker, defender, roll) 
         @attacker = attacker
         @defender = defender
-        #@defender_armor_class = defender_armor_class
         @roll = roll
+
+        # modified strength used to increase roll 
+        @strength = strength 
+    end
+
+    ##
+    # Calculate strength of attack. On critical hits strength will be doubled
+    def strength
+        strength = Modifier.score(@attacker.ability(:strength))
+        is_hit_critical ? strength * 2 : strength
     end
 
     ##
@@ -71,8 +94,9 @@ class Combat
     end
 
     ##
-    # Perform attack, determine damage
+    # Perform attack, return damage
     def hit
+        return 1 + @strength if @strength > 0
         return 2 if is_hit_critical
         return 1 if is_hit_successful
         0
@@ -83,7 +107,15 @@ class Combat
     end
 
     def is_hit_successful
-        @roll >= @defender.armor_class #@defender_armor_class
+        roll = @roll + @strength
+        roll >= @defender.armor_class 
+    end
+end
+
+class Modifier
+    def Modifier.score(score)
+        m = score - 10
+        m / 2
     end
 end
 
