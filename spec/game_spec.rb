@@ -48,6 +48,17 @@ RSpec.describe Character do
         expect(@hero.hit_points).to eq 15
     end
 
+    it "hit points set to full on level up" do
+        @hero.hit_points = 1
+        @hero.level = 2
+        expect(@hero.hit_points).to eq 10
+    end
+
+    it "hit points can be set to any amount" do
+        @hero.hit_points = 42
+        expect(@hero.hit_points).to eq 42
+    end
+
     it "hit points increase by 5 + constitution per level" do
         hit_points = @hero.hit_points
         @hero.set_ability(:constitution, 12)
@@ -56,12 +67,12 @@ RSpec.describe Character do
     end
 
     it "is alive" do
-        expect(@hero.is_alive?).to be true
+        expect(@hero.alive?).to be true
     end
 
     it "has expired" do
         @hero.damaged(@hero.hit_points)
-        expect(@hero.is_alive?).to be false
+        expect(@hero.alive?).to be false
     end
 
     it "has abilities that default to 10" do
@@ -133,6 +144,14 @@ RSpec.describe Combat do
         expect(hit).to be false
     end
 
+    it "hits player for double damage on critical roll" do
+        @defender.armor_class = 20
+        roll = 20
+        combat = Combat.new @attacker, @defender, roll
+        damage = combat.hit
+        expect(damage).to eq 2
+    end
+
     it "always hits on critical roll" do
         @defender.armor_class = 30
         roll = 20
@@ -147,14 +166,6 @@ RSpec.describe Combat do
         combat = Combat.new @attacker, @defender, roll
         damage = combat.hit
         expect(damage).to eq 1
-    end
-
-    it "hits player for double damage on critical roll" do
-        @defender.armor_class = 20
-        roll = 20
-        combat = Combat.new @attacker, @defender, roll
-        damage = combat.hit
-        expect(damage).to eq 2
     end
 
     it "causes no damage if armor is stronger than roll" do
@@ -236,10 +247,12 @@ RSpec.describe "Modifier" do
     end
 
     it "strength modifier doubles on critical hit" do
+        # how to tease out just this functionality? use attacker_strength_damage?
+        # running full combat has lots of vars going on
         @attacker.set_ability :strength, 20
         combat = Combat.new @attacker, @defender, roll=Combat::CRITICAL_HIT
         damage = combat.hit
-        expect(damage).to eq 12 # 1 base dmg + (5 str doubled)
+        expect(damage).to eq 22 # (1=success + (5=str_mod * 2) * double damage on crit
     end
 
     it "strength causes minimum damage to always be 1 even if roll less than defender amor" do

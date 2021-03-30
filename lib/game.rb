@@ -37,7 +37,7 @@ class Character
     end
 
     def damaged(hit_points)
-        constitution = Modifier.score @abilities[:constitution]
+        constitution = modifier :constitution 
         attempt = @hit_points - hit_points
 
         if constitution > 0 && attempt < 1
@@ -70,18 +70,12 @@ class Character
         @experience = attempt
     end
 
+    ##
+    # Set character level
     def level=(level)
-        # check! modify hit points here? <- faster, cannot recompute rules
-        # OR 
-        # ~~ hit_points uses level to return res? <-- flexible, but more method calls
-        # - computed wouldnt be able to store damage.. store damage as own prop?
-
-        # my own rule: level up replentishes health to full
-
         # hit points increase by 5 plus constitution modifier
-        constitution = Modifier.score @abilities[:constitution]
+        constitution = modifier :constitution 
         multiplier = DEFAULT_HIT_POINTS + constitution
-
         @hit_points = multiplier * level
 
         @level = level
@@ -91,7 +85,13 @@ class Character
         hp = @hit_points
     end
 
-    def is_alive?
+    ##
+    # Override character hit points to any amount
+    def hit_points=(points)
+        @hit_points = points
+    end
+
+    def alive?
         @hit_points > 0
     end
 
@@ -114,7 +114,7 @@ class Character
     ##
     # character specific defense enhancements
     def defend_modifier
-        dexterity = Modifier.score ability(:dexterity)
+        dexterity = modifier :dexterity 
         armor_class + dexterity
     end
 
@@ -122,13 +122,17 @@ class Character
     # character specific attack enhancements
     def attack_modifier
         # strength modifies attack roll
-        strength = Modifier.score ability(:strength)
+        strength = modifier :strength 
         strength + level_attack_damage
     end
 
     def modifier(ability)
         Modifier.score ability(ability)
     end
+end
+
+class Fighter < Character
+    # attacks roll is increased by 1 for every level instead of every other level
 end
 
 ##
@@ -185,48 +189,36 @@ class Combat
     # - base damage is increased by modifier
     def attacker_strength_damage
         # add strength modifier to damage dealt
-        strength = Modifier.score @attacker.ability(:strength)
-
-        # On critical hits, strength is doubled
-        if is_hit_critical
-            strength * 2
-        end
-
+        strength = @attacker.modifier :strength 
+        strength = strength * 2 if is_hit_critical
         strength
     end
 
     def critical_hit_doubles_damage(damage)
-        if is_hit_critical
-            damage * 2
-        else
-            damage
-        end
+        damage *= 2 if is_hit_critical
+        damage
     end
 
     def damage
         amount = 0 # base damage
-
-        if is_hit_successful
-            amount += 1
-        end
-
+        amount += 1 if is_hit_successful
         amount += attacker_strength_damage
-
         amount = critical_hit_doubles_damage amount
-
-        #if _strength > 0
-        #    1 + _strength
-        #elsif is_hit_critical
-        #    2
-        #elsif is_hit_successful
-        #    1
-        #else
-        #    0
-        #end
     end
 end
 
 class Modifier
+    ##
+    # Convert a character ability score into a modified score.
+    #
+    # Score  Mod
+    # -----  ---
+    #     1   -5
+    #    10    0
+    #    20   +5
+    #
+    # +score+ Ability score Range 1 to 20
+    # returns modifier -5 to +5
     def Modifier.score(score)
         m = score - 10
         m / 2
