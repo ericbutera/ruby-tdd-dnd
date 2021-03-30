@@ -182,6 +182,7 @@ RSpec.describe Combat do
 
     it "1 is added to attack roll for every even level achieved" do
         combat = Combat.new @attacker, @defender, roll=9
+        @attacker.level=2
         damage = combat.hit
         expect(damage).to eq 1
     end
@@ -217,6 +218,16 @@ RSpec.describe "Modifier" do
         expect(combat.hit?).to be true
     end
 
+    it "weak roll causes no damage" do
+        combat = Combat.new @attacker, @defender, roll=1
+        expect(combat.hit).to eq 0
+    end
+
+    it "attack equal to defense causes 1 damage" do
+        combat = Combat.new @attacker, @defender, roll=10
+        expect(combat.hit).to eq 1
+    end
+
     it "strength 12 increases damage dealt by 1" do
         @attacker.set_ability :strength, 12
         combat = Combat.new @attacker, @defender, roll=10
@@ -228,15 +239,15 @@ RSpec.describe "Modifier" do
         @attacker.set_ability :strength, 20
         combat = Combat.new @attacker, @defender, roll=Combat::CRITICAL_HIT
         damage = combat.hit
-        expect(damage).to eq 11
+        expect(damage).to eq 12 # 1 base dmg + (5 str doubled)
     end
 
-    it "strength causes minimum damage to always be 1" do
+    it "strength causes minimum damage to always be 1 even if roll less than defender amor" do
         @attacker.set_ability :strength, 12
         @defender.armor_class = 10
         combat = Combat.new @attacker, @defender, roll=1
         damage = combat.hit
-        expect(damage).to eq 2 # 1 base damage, +1 damage because strength
+        expect(damage).to eq 1 
     end
 
     it "dexterity 12 increases armor by 1" do

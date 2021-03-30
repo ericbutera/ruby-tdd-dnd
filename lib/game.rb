@@ -105,6 +105,30 @@ class Character
         raise ArgumentError, "Attribute score must be between 1 and 20. Given <#{score}>" unless score.between?(ABILITY_MIN, ABILITY_MAX)
         @abilities[ability] = score 
     end
+
+    def level_attack_damage
+        # 1 is added to attack roll for every even level achieved
+        level / 2
+    end
+
+    ##
+    # character specific defense enhancements
+    def defend_modifier
+        dexterity = Modifier.score ability(:dexterity)
+        armor_class + dexterity
+    end
+
+    ##
+    # character specific attack enhancements
+    def attack_modifier
+        # strength modifies attack roll
+        strength = Modifier.score ability(:strength)
+        strength + level_attack_damage
+    end
+
+    def modifier(ability)
+        Modifier.score ability(ability)
+    end
 end
 
 ##
@@ -141,61 +165,64 @@ class Combat
     end
 
     private
-
-    ##
-    # Calculate strength of attack. On critical hits, strength is doubled
-    def strength
-        modifier = Modifier.score @attacker.ability(:strength)
-
-        if is_hit_critical
-            modifier * 2
-        else 
-            modifier
-        end
-    end
-
     ##
     # Die roll with modifiers
     def roll
-        @roll + strength + attack_roll_modifier
+        @roll + @attacker.attack_modifier
     end
 
     def is_hit_critical
         @roll == CRITICAL_HIT
     end
 
-    def attack_roll_modifier
-        # 1 is added to attack roll for every even level achieved
-        @attacker.level / 2
+    def is_hit_successful
+        roll >= @defender.defend_modifier
     end
 
-    def is_hit_successful
-        dexterity = Modifier.score @defender.ability(:dexterity)
-        _defender_armor = @defender.armor_class + dexterity # maybe this goes in Character?
+    ##
+    # Attacker Strength modifier increases damage in two ways:
+    # - critical hits double modifier
+    # - base damage is increased by modifier
+    def attacker_strength_damage
+        # add strength modifier to damage dealt
+        strength = Modifier.score @attacker.ability(:strength)
 
-        _roll = roll + 
+        # On critical hits, strength is doubled
+        if is_hit_critical
+            strength * 2
+        end
 
-        _roll >= _defender_armor
+        strength
+    end
+
+    def critical_hit_doubles_damage(damage)
+        if is_hit_critical
+            damage * 2
+        else
+            damage
+        end
     end
 
     def damage
-        _strength = strength
-        if _strength > 0
-            1 + _strength # cached _strength is annoying.. find better way
-        elsif is_hit_critical
-            2
-        elsif is_hit_successful
-            1
-        else
-            0
+        amount = 0 # base damage
+
+        if is_hit_successful
+            amount += 1
         end
 
-        # which do i like more?
+        amount += attacker_strength_damage
 
-        #return 1 + _strength if _strength > 0
-        #return 2 if is_hit_critical
-        #return 1 if is_hit_successful
-        #0
+        amount = critical_hit_doubles_damage amount
+
+        #if _strength > 0
+        #    1 + _strength
+        #elsif is_hit_critical
+        #    2
+        #elsif is_hit_successful
+        #    1
+        #else
+        #    0
+        #end
     end
 end
 
