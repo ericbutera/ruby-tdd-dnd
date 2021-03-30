@@ -26,7 +26,6 @@ class Character
         @level = 1
         @experience = 0
 
-        # todo abilities range from 1 to 20
         @abilities = {
             :strength => DEFAULT_ABILITY,
             :dexterity => DEFAULT_ABILITY,
@@ -71,12 +70,25 @@ class Character
         @experience = attempt
     end
 
+    def level=(level)
+        # check! modify hit points here? <- faster, cannot recompute rules
+        # OR 
+        # ~~ hit_points uses level to return res? <-- flexible, but more method calls
+        # - computed wouldnt be able to store damage.. store damage as own prop?
+
+        # my own rule: level up replentishes health to full
+
+        # hit points increase by 5 plus constitution modifier
+        constitution = Modifier.score @abilities[:constitution]
+        multiplier = DEFAULT_HIT_POINTS + constitution
+
+        @hit_points = multiplier * level
+
+        @level = level
+    end
+
     def hit_points
-        # constitution = Modifier.score @abilities[:constitution]
-        # hit_points
-        # += (5 * level)
-        # += constitution
-        @hit_points 
+        hp = @hit_points
     end
 
     def is_alive?
@@ -88,10 +100,10 @@ class Character
         @abilities[ability]
     end
 
-    def set_ability(ability, value)
+    def set_ability(ability, score)
         # todo research better way to handle get/set
-        raise ArgumentError, "Attribute value must be between 1 and 20. Given <#{value}>" unless value.between?(ABILITY_MIN, ABILITY_MAX)
-        @abilities[ability] = value 
+        raise ArgumentError, "Attribute score must be between 1 and 20. Given <#{score}>" unless score.between?(ABILITY_MIN, ABILITY_MAX)
+        @abilities[ability] = score 
     end
 end
 
@@ -145,16 +157,25 @@ class Combat
     ##
     # Die roll with modifiers
     def roll
-        @roll + strength
+        @roll + strength + attack_roll_modifier
     end
 
     def is_hit_critical
         @roll == CRITICAL_HIT
     end
 
+    def attack_roll_modifier
+        # 1 is added to attack roll for every even level achieved
+        @attacker.level / 2
+    end
+
     def is_hit_successful
         dexterity = Modifier.score @defender.ability(:dexterity)
-        roll >= @defender.armor_class + dexterity # maybe this goes in Character?
+        _defender_armor = @defender.armor_class + dexterity # maybe this goes in Character?
+
+        _roll = roll + 
+
+        _roll >= _defender_armor
     end
 
     def damage

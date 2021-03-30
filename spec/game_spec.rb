@@ -42,6 +42,19 @@ RSpec.describe Character do
         expect(@hero.hit_points).to eq 4
     end
 
+    it "hit points increase by 5 per level" do
+        hit_points = @hero.hit_points
+        @hero.level = 3
+        expect(@hero.hit_points).to eq 15
+    end
+
+    it "hit points increase by 5 + constitution per level" do
+        hit_points = @hero.hit_points
+        @hero.set_ability(:constitution, 12)
+        @hero.level = 2
+        expect(@hero.hit_points).to eq 12 # 10hp + 1const
+    end
+
     it "is alive" do
         expect(@hero.is_alive?).to be true
     end
@@ -166,6 +179,12 @@ RSpec.describe Combat do
         combat.hit
         expect(@attacker.experience).to eq 10
     end
+
+    it "1 is added to attack roll for every even level achieved" do
+        combat = Combat.new @attacker, @defender, roll=9
+        damage = combat.hit
+        expect(damage).to eq 1
+    end
 end
 
 RSpec.describe "Modifier Calculation" do
@@ -191,12 +210,6 @@ RSpec.describe "Modifier" do
         @defender = Character.new 'Defender'
     end
 
-    # add Strength modifier to:
-    #   attack roll and damage dealt
-    #   double Strength modifier on critical hits
-    #   minimum damage is always 1 (even on a critical hit)
-    # add Dexterity modifier to armor class
-    # add Constitution modifier to hit points (always at least 1 hit point)
     it "strength modifier of 14 makes attack roll above armor of defender" do
         roll = 9
         @attacker.set_ability :strength, 14 
